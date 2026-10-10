@@ -1,3 +1,8 @@
 node_modules/
+.next/
+dist/
 .DS_Store
 *.log
+*.tsbuildinfo
+next-env.d.ts
+# out/ IS the deploy artifact served by the CDN — keep it in git

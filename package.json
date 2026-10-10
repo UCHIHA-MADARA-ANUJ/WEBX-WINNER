@@ -1,14 +1,33 @@
 {
-  "name": "lattice-impossible-interface",
-  "version": "1.0.0",
+  "name": "anuj-impossible-interface",
+  "version": "2.0.0",
   "private": true,
-  "type": "module",
-  "description": "LATTICE — a living web interface with no fixed structure. Six navigation paradigms, one behavioural genome, continuous evolution.",
+  "description": "Anuj Phulera — the impossible interface. A portfolio with no fixed layout, built in Next.js.",
   "scripts": {
-    "serve": "python3 -m http.server 4173",
-    "test": "node --test test/engine.test.mjs test/dom.smoke.mjs"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "node --import tsx --test test/engine.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@react-three/drei": "^9.120.4",
+    "@react-three/fiber": "^8.17.10",
+    "framer-motion": "^11.15.0",
+    "lenis": "^1.1.18",
+    "next": "^15.1.6",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "three": "^0.171.0"
   },
   "devDependencies": {
-    "jsdom": "^25.0.1"
+    "@tailwindcss/postcss": "^4.0.0",
+    "@types/node": "^22.10.7",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@types/three": "^0.171.0",
+    "tailwindcss": "^4.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
   }
 }
