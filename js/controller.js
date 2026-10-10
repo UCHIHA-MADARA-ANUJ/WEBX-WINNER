@@ -51,10 +51,31 @@ export function boot() {
     affinity: new Map(saved?.affinity || UNIT_IDS.map((id) => [id, 0])),
     promoted: { ...(saved?.promoted || {}) },
     shape: null,
+    order: null, // the frozen hierarchy — re-rolled only at evolution moments
   };
 
   const telemetry = createTelemetry();
-  const scheduler = createScheduler({ genome });
+  const scheduler = createScheduler({
+    genome,
+    onEpoch: () => {
+      // the shape survives, but the hierarchy may quietly evolve —
+      // and only here, not on every click
+      const before = state.order.join(",");
+      recomputeOrder();
+      if (before !== state.order.join(",")) {
+        flipMorph(renderShape);
+        showBanner(
+          {
+            glyph: "◈",
+            kicker: "THE HIERARCHY IS EVOLVING",
+            headline: "Same website, new order — what you care about drifted upward.",
+            sub: "structure holds · sequence adapts",
+          },
+          bannerHost
+        );
+      }
+    },
+  });
   if (saved?.scheduler) scheduler.restore(saved.scheduler);
   scheduler.restore({ current: saved?.lastShape || "magazine" });
 
@@ -98,9 +119,18 @@ export function boot() {
     },
   });
 
-  /* ---------------- hierarchy ---------------- */
-  function rankedUnits() {
+  /* ---------------- hierarchy ----------------
+     The order is FROZEN per shape-session. It re-rolls only at
+     evolution moments (restructure, epoch re-rank, reshuffle) —
+     the site must feel intelligent, never twitchy. */
+  function computeOrder() {
     return [...UNIT_IDS].sort((a, b) => score(b) - score(a));
+  }
+  function recomputeOrder() {
+    state.order = computeOrder();
+  }
+  function rankedUnits() {
+    return state.order || (recomputeOrder(), state.order);
   }
   function score(id) {
     return (
@@ -151,6 +181,7 @@ export function boot() {
 
   function restructure(decision, { silent = false } = {}) {
     chrome.pulse();
+    recomputeOrder(); // a new shape gets a freshly-evolved hierarchy
     flipMorph(renderShape);
     const to = PARADIGMS[decision.to];
     const from = PARADIGMS[decision.from];
@@ -297,8 +328,10 @@ export function boot() {
         break;
       }
       case "focus": {
+        // a plain look is not a structural event — never reshuffle for it
         setFocus(unitId);
         telemetry.recordAction("focus", { unitId });
+        reRender = false;
         break;
       }
       case "pin": {
@@ -355,6 +388,7 @@ export function boot() {
       case "reshuffle": {
         state.deck.index = 0;
         state.deck.skipped.clear();
+        recomputeOrder();
         telemetry.recordAction("reshuffle", {});
         break;
       }
@@ -375,6 +409,7 @@ export function boot() {
       return;
     }
     if (reRender) flipMorph(renderShape);
+    else refreshAllCards(cards, state, state.promoted);
     saveThrottled();
   }
 

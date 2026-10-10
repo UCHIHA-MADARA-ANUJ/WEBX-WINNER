@@ -129,3 +129,19 @@ test("memory: actions persist and shapes stay reachable", async (t) => {
   const raw = window.localStorage.getItem("lattice.genome.v1");
   assert.ok(raw && JSON.parse(raw).generation === 1, "genome persisted");
 });
+
+test("stability: the page never reshuffles for a plain look (golden rule)", async (t) => {
+  const { window, document, teardown } = await bootDom();
+  t.after(teardown);
+  document.querySelector('[data-mode="reader"]').click();
+  await settle(800);
+  const orderOf = () =>
+    [...document.querySelectorAll(".mag-doc [data-flip]")].map((el) => el.dataset.id).join(",");
+  const before = orderOf();
+  // three plain "looks" at different cards — must not move anything
+  for (const id of ["resonate", "mun", "about"]) {
+    document.querySelector(`[data-id='${id}']`).dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  }
+  await settle(300);
+  assert.equal(orderOf(), before, "hierarchy is frozen between evolution moments");
+});

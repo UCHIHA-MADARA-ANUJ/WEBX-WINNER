@@ -66,7 +66,7 @@ function similarity(genome, ideal) {
   return sum / TRAIT_KEYS.length;
 }
 
-export function createScheduler({ genome, onChanged }) {
+export function createScheduler({ genome, onChanged, onEpoch }) {
   let current = "magazine";
   let enteredAt = performance.now();
   let lastLeft = { id: null, at: 0 };
