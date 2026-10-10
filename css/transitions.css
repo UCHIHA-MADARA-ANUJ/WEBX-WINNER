@@ -1,0 +1,109 @@
+/* ============================================================
+   LATTICE — structural morphing
+   FLIP: cards keep their DOM identity while the world
+   reorganises around them. Reduced motion → honest crossfade.
+   ============================================================ */
+
+.card {
+  will-change: transform;
+}
+
+/* FLIP: JS sets an invert transform, then this eases it home */
+.card.is-flipping {
+  transition: transform var(--dur) var(--ease), opacity 260ms linear;
+  z-index: 20;
+}
+
+/* chrome + aux panels re-compose with a soft cascade */
+.recompose {
+  animation: recompose 560ms var(--ease) both;
+}
+.recompose-1 { animation-delay: 40ms; }
+.recompose-2 { animation-delay: 90ms; }
+.recompose-3 { animation-delay: 140ms; }
+.recompose-4 { animation-delay: 190ms; }
+
+@keyframes recompose {
+  from { opacity: 0; transform: translateY(12px) scale(0.985); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* paradigm enter: the frame breathes as a new skeleton assembles */
+.frame.is-restructuring .main-host,
+.frame.is-restructuring .nav-host {
+  animation: skeleton 720ms var(--ease) both;
+}
+@keyframes skeleton {
+  0%   { opacity: 1; }
+  22%  { opacity: 0.25; filter: saturate(0.6); }
+  100% { opacity: 1; filter: none; }
+}
+
+/* orbital rotation: satellites swing into new bearings */
+.orbit-stage .card.is-hub {
+  transition: box-shadow 500ms var(--ease), border-color 500ms var(--ease);
+}
+.orbit-stage .card:not(.is-hub) {
+  transition: transform 620ms var(--ease-snap), opacity 380ms var(--ease),
+              border-color 180ms var(--ease), background 180ms var(--ease);
+}
+
+/* deck swipe */
+.deck-slot .card.is-swipe-keep {
+  transform: translate(90px, -30px) rotate(4deg) scale(0.92) !important;
+  opacity: 0;
+}
+.deck-slot .card.is-swipe-skip {
+  transform: translate(-90px, -20px) rotate(-5deg) scale(0.92) !important;
+  opacity: 0;
+}
+
+/* spatial pop-in for nodes when the field is seeded */
+.spatial-field .card { animation: node-in 520ms var(--ease) both; }
+@keyframes node-in {
+  from { opacity: 0; transform: scale(0.86); }
+  to   { opacity: 1; }
+}
+
+/* command typing echo */
+.term__cursor {
+  display: inline-block; width: 9px; height: 17px;
+  background: var(--mint); vertical-align: -3px; margin-left: 2px;
+  animation: blink 1.05s steps(1) infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* grid widgets settle */
+.grid-board .card { animation: widget-in 480ms var(--ease) both; }
+@keyframes widget-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; }
+}
+
+/* reading-progress glow for linear */
+.linear-progress__fill {
+  box-shadow: 0 0 14px rgba(125, 249, 201, 0.55);
+}
+
+/* ------------------------------------------------------------
+   reduced motion: no flights, no drift — but structure still
+   visibly changes (it must: that is the whole point).
+   ------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+  .organism__blob { animation: none !important; }
+  .card.is-flipping { transition: opacity 200ms linear !important; transform: none !important; }
+  .frame.is-restructuring .main-host,
+  .frame.is-restructuring .nav-host {
+    animation: fade-swap 320ms ease both;
+  }
+  @keyframes fade-swap {
+    0% { opacity: 0.4; }
+    100% { opacity: 1; }
+  }
+}

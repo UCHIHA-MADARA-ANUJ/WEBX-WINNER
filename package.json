@@ -1,0 +1,14 @@
+{
+  "name": "lattice-impossible-interface",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "LATTICE — a living web interface with no fixed structure. Six navigation paradigms, one behavioural genome, continuous evolution.",
+  "scripts": {
+    "serve": "python3 -m http.server 4173",
+    "test": "node --test test/engine.test.mjs test/dom.smoke.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^25.0.1"
+  }
+}
