@@ -5,7 +5,7 @@ around you — a magazine, a star-map, a swipe deck or an orbit — without ever
 
 <p align="center">
   <b>◈ LIVE → </b>
-  <a href="https://cdn.jsdelivr.net/gh/UCHIHA-MADARA-ANUJ/WEBX-WINNER@fd5f35f/out/index.html">
+  <a href="https://cdn.jsdelivr.net/gh/UCHIHA-MADARA-ANUJ/WEBX-WINNER@c51a66f/out/index.html">
     <b>anujphulera — the impossible interface</b>
   </a>
 </p>
