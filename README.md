@@ -8,7 +8,12 @@ structurally different versions of the same website.
 
 > The ideas never change. Everything else does.
 
-**Live →** https://uchiha-madara-anuj.github.io/WEBX-WINNER/
+**Live →** https://cdn.jsdelivr.net/gh/UCHIHA-MADARA-ANUJ/WEBX-WINNER@arena/df15d562-webx-winner/index.html
+(instant CDN mirror of this branch — verified serving)
+
+**GitHub Pages →** https://uchiha-madara-anuj.github.io/WEBX-WINNER/
+*Settings → Pages → Deploy from a branch → `arena/df15d562-webx-winner` / root.*
+(A deploy-from-Actions template is in `docs/github-pages.yml.example`.)
 
 ---
 
