@@ -18,9 +18,9 @@
   --foreground: #e2e8f0;
 }
 
-html {
-  scroll-behavior: smooth;
-}
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: hidden; }
 
 body {
   background-color: var(--background);
@@ -279,6 +279,12 @@ h1, h2, h3, h4, h5, h6 {
   animation: caret-blink 0.9s steps(1) infinite;
 }
 @keyframes caret-blink { 50% { opacity: 0; } }
+
+@keyframes wave-sweep {
+  0% { transform: translateX(-100%) skewX(-18deg); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translateX(100%) skewX(-18deg); opacity: 0; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

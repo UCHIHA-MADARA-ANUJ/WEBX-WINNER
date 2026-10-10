@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import Lenis from "lenis";
 import { BootSequence } from "./boot";
 import { Hero, type Mode } from "./hero";
 import { Chrome, Ticker } from "./chrome";
@@ -72,6 +73,28 @@ export function Experience() {
   useEffect(() => { expandedRef.current = expanded; }, [expanded]);
   useEffect(() => { pinsRef.current = pins; }, [pins]);
   useEffect(() => { shapeRef.current = shape; }, [shape]);
+
+  /* recognise returning visitors before the hero even speaks */
+  useEffect(() => {
+    const saved = loadState();
+    if (saved?.generation) setGeneration(saved.generation + 1);
+  }, []);
+
+  /* smooth scroll — Lenis, like the RESONATE standard */
+  useEffect(() => {
+    if (phase !== "experience") return;
+    const lenis = new Lenis({ duration: 1.15, smoothWheel: true, touchMultiplier: 1.6 });
+    let raf = 0;
+    const loop = (t: number) => {
+      lenis.raf(t);
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => {
+      cancelAnimationFrame(raf);
+      lenis.destroy();
+    };
+  }, [phase]);
 
   /* ---------------- persistence ---------------- */
   const persist = useCallback(() => {
@@ -197,14 +220,25 @@ export function Experience() {
         return n;
       });
       if (type === "focus" || type === "rel" || type === "orbit" || type === "jump") {
+        // flush the previous dwell first — with its REAL elapsed time
+        if (dwellTimer.current && lastDwell.current.id) {
+          clearTimeout(dwellTimer.current);
+          const ms = Date.now() - lastDwell.current.start;
+          telemetry.current.setDwellTarget(null);
+          if (ms > 400) {
+            applyEvent(genomeRef.current, { type: "dwell", ms, unitId: lastDwell.current.id });
+            const dPrev = scheduler.current.onAction();
+            if (dPrev) evolutionMoment(dPrev, "engine");
+          }
+        }
         setFocusId(unitId);
         trailRef.current = [...trailRef.current.slice(-19), unitId];
         telemetry.current.setDwellTarget(unitId);
-        // dwell flush
-        if (dwellTimer.current) clearTimeout(dwellTimer.current);
+        lastDwell.current = { id: unitId, start: Date.now() };
         dwellTimer.current = setTimeout(() => {
           telemetry.current.setDwellTarget(null);
-          applyEvent(genomeRef.current, { type: "dwell", ms: 12000, unitId });
+          applyEvent(genomeRef.current, { type: "dwell", ms: Date.now() - lastDwell.current.start, unitId });
+          lastDwell.current = { id: null, start: 0 };
           setGenome({ ...genomeRef.current });
           const d2 = scheduler.current.onAction();
           if (d2) evolutionMoment(d2, "engine");
