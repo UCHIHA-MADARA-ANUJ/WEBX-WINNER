@@ -47,7 +47,7 @@ export function createCard(unitId, ctx) {
     </div>
     <div class="card__content">
       <header class="card__head">
-        <div class="card__kicker">${unit.kicker}</div>
+        <div class="card__kicker"><span class="card__kicker-line"></span>${unit.kicker}</div>
         <h3 class="card__title">${unit.title}</h3>
         <div class="card__subtitle">${unit.subtitle || ""}</div>
       </header>
@@ -62,7 +62,9 @@ export function createCard(unitId, ctx) {
         ${hrefBtn}
       </footer>
     </div>
+    <div class="card__spot" aria-hidden="true"></div>
   `;
+  el.dataset.reveal = "";
 
   el.addEventListener("click", (e) => {
     if (e.target.closest("[data-live]")) {
@@ -97,7 +99,7 @@ export function createCard(unitId, ctx) {
     }
   });
 
-  // cinematic tilt-on-hover for pointer users
+  // cinematic tilt + cursor spotlight
   el.addEventListener("pointermove", (e) => {
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
     if (window.matchMedia?.("(hover: none)").matches) return;
@@ -106,10 +108,14 @@ export function createCard(unitId, ctx) {
     const y = (e.clientY - r.top) / r.height - 0.5;
     el.style.setProperty("--tilt-x", `${(-y * 5).toFixed(2)}deg`);
     el.style.setProperty("--tilt-y", `${(x * 6).toFixed(2)}deg`);
+    el.style.setProperty("--mx", `${(((e.clientX - r.left) / r.width) * 100).toFixed(1)}%`);
+    el.style.setProperty("--my", `${(((e.clientY - r.top) / r.height) * 100).toFixed(1)}%`);
   });
   el.addEventListener("pointerleave", () => {
     el.style.setProperty("--tilt-x", "0deg");
     el.style.setProperty("--tilt-y", "0deg");
+    el.style.setProperty("--mx", "-20%");
+    el.style.setProperty("--my", "-20%");
   });
 
   return el;

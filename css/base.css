@@ -668,3 +668,251 @@ a { color: inherit; }
   .brand__tag { display: none; }
   .gen-badge { display: none; }
 }
+
+/* ============================================================
+   v3 — CRAFT PASS
+   Living canvas, type-as-art hero, spotlight cards, ticker,
+   shockwave. The difference between "works" and "the best".
+   ============================================================ */
+
+/* ---- living canvas ---- */
+.ember-canvas {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  opacity: 0.85;
+}
+
+/* ---- kinetic ticker ---- */
+.ticker {
+  overflow: hidden;
+  border-bottom: 1px solid var(--line);
+  background: rgba(10, 7, 14, 0.6);
+  padding: 9px 0;
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.ticker__track {
+  display: flex; gap: 26px; align-items: center;
+  width: max-content;
+  animation: ticker-run 38s linear infinite;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.32em;
+  text-transform: uppercase; color: var(--text-faint);
+  white-space: nowrap;
+}
+.ticker__track i { color: var(--crimson); font-style: normal; }
+.ticker:hover .ticker__track { animation-play-state: paused; }
+@keyframes ticker-run {
+  to { transform: translateX(-50%); }
+}
+
+/* ---- hero v3: type as art ---- */
+.hero__inner { padding-top: clamp(24px, 5vh, 56px); }
+.hero__kicker {
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 22px;
+}
+.hero__kicker-dash {
+  width: 44px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--crimson));
+}
+.hero__kicker-dash:last-child { transform: scaleX(-1); }
+
+.hero__name {
+  display: flex; flex-direction: column; align-items: center;
+  font-family: var(--display); font-weight: 800;
+  line-height: 0.92; letter-spacing: 0.005em;
+}
+.hero__name-line {
+  display: block;
+  font-size: clamp(3.2rem, 2rem + 8.5vw, 8.2rem);
+}
+.hero__name-line--solid {
+  background: linear-gradient(180deg, #fff 20%, #ffc9d4 70%, var(--crimson) 115%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  filter: drop-shadow(0 10px 50px rgba(255, 45, 85, 0.35));
+}
+.hero__name-line--ghost {
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.42);
+  text-shadow: 0 0 70px rgba(255, 45, 85, 0.35);
+  margin-top: -0.04em;
+}
+
+.hero__role {
+  display: flex; flex-wrap: wrap; justify-content: center;
+  gap: 10px 16px; margin-top: 22px;
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.34em;
+  text-transform: uppercase; color: var(--text-dim);
+}
+.hero__role i {
+  color: var(--crimson); font-style: normal; font-size: 8px;
+  align-self: center;
+}
+
+.hero__creed {
+  margin-top: 20px;
+  font-family: var(--display); font-style: italic; font-weight: 500;
+  font-size: clamp(1.05rem, 0.95rem + 0.9vw, 1.55rem);
+  color: var(--gold); letter-spacing: 0.01em;
+}
+.hero__creed-mark { opacity: 0.55; margin: 0 8px; }
+
+.hero__pitch {
+  margin: 22px auto 0; max-width: 540px;
+  font-size: 16px; line-height: 1.8; color: var(--text-dim);
+}
+.hero__pitch em {
+  color: #fff; font-style: normal; font-weight: 600;
+  background: linear-gradient(transparent 62%, rgba(255, 45, 85, 0.32) 62%);
+}
+
+/* doors — the three glowing entrances */
+.hero__doors { margin-top: 40px; gap: 18px; }
+.door { position: relative; isolation: isolate; overflow: hidden; }
+.door__glow {
+  position: absolute; inset: -1px; z-index: -1;
+  border-radius: inherit;
+  background: conic-gradient(from var(--door-spin, 0deg),
+    transparent 0 40%, rgba(255, 45, 85, 0.85) 50%, transparent 60% 100%);
+  opacity: 0; transition: opacity 300ms;
+}
+.door:hover .door__glow {
+  opacity: 1;
+  animation: door-spin 2.2s linear infinite;
+}
+@keyframes door-spin {
+  to { --door-spin: 360deg; }
+}
+@property --door-spin {
+  syntax: "<angle>"; initial-value: 0deg; inherits: false;
+}
+.door::after {
+  content: "";
+  position: absolute; inset: 1px; z-index: -1;
+  border-radius: 18px;
+  background: rgba(12, 10, 18, 0.92);
+}
+.door--read:hover { box-shadow: 0 18px 60px -18px rgba(255, 45, 85, 0.55); }
+.door--explore:hover { box-shadow: 0 18px 60px -18px rgba(157, 123, 255, 0.55); }
+.door--speed:hover { box-shadow: 0 18px 60px -18px rgba(255, 206, 115, 0.55); }
+.door--explore .door__glow {
+  background: conic-gradient(from var(--door-spin, 0deg),
+    transparent 0 40%, rgba(157, 123, 255, 0.85) 50%, transparent 60% 100%);
+}
+.door--speed .door__glow {
+  background: conic-gradient(from var(--door-spin, 0deg),
+    transparent 0 40%, rgba(255, 206, 115, 0.85) 50%, transparent 60% 100%);
+}
+.door__title {
+  font-family: var(--display); font-size: 15.5px; font-weight: 700;
+  letter-spacing: 0.1em; line-height: 1.35;
+}
+.door:hover .door__glyph { transform: translateY(-4px) scale(1.12); }
+.door__glyph { transition: transform 320ms var(--ease-snap); }
+
+.hero__foot { margin-top: 26px; }
+.hero__scroll, .hero__memory {
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.32em;
+  text-transform: uppercase; color: var(--text-faint);
+}
+.hero__memory { color: var(--gold); }
+
+/* ---- spotlight cards ---- */
+.card__spot {
+  position: absolute; inset: 0; z-index: 2;
+  border-radius: inherit; pointer-events: none;
+  opacity: 0; transition: opacity 300ms;
+  background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(255, 45, 85, 0.14), transparent 65%);
+  mix-blend-mode: screen;
+}
+.card:hover .card__spot { opacity: 1; }
+
+.card::before {
+  content: "";
+  position: absolute; inset: 0; z-index: 2;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg,
+    rgba(255, 45, 85, 0.0), rgba(255, 45, 85, 0.0) 30%,
+    rgba(255, 45, 85, 0.65) 50%,
+    rgba(255, 45, 85, 0.0) 70%, rgba(255, 45, 85, 0.0));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0; transition: opacity 300ms;
+  pointer-events: none;
+}
+.card:hover::before { opacity: 1; }
+
+.card__kicker {
+  display: flex; align-items: center; gap: 10px;
+}
+.card__kicker-line {
+  width: 22px; height: 1.5px; flex: none;
+  background: var(--crimson);
+  box-shadow: 0 0 10px rgba(255, 45, 85, 0.8);
+  transition: width 400ms var(--ease);
+}
+.card:hover .card__kicker-line { width: 40px; }
+
+/* ---- act buttons: shine sweep ---- */
+.act {
+  position: relative; overflow: hidden;
+  background: rgba(255, 255, 255, 0.03);
+}
+.act::after {
+  content: "";
+  position: absolute; top: 0; bottom: 0; left: -70%; width: 46%;
+  background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+  transform: skewX(-18deg);
+  transition: left 420ms var(--ease);
+}
+.act:hover::after { left: 130%; }
+
+/* ---- shockwave ---- */
+.shockwave {
+  position: fixed; inset: 0; z-index: 82;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 52%,
+      rgba(255, 45, 85, 0.0) 0%,
+      rgba(255, 45, 85, 0.22) 12%,
+      rgba(255, 45, 85, 0.0) 34%);
+  animation: shockwave 880ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  mix-blend-mode: screen;
+}
+@keyframes shockwave {
+  0% { opacity: 0; transform: scale(0.25); }
+  22% { opacity: 1; }
+  100% { opacity: 0; transform: scale(2.6); }
+}
+
+/* ---- banner typing caret ---- */
+.banner__caret {
+  display: inline-block; width: 8px; height: 15px;
+  margin-left: 3px; vertical-align: -2px;
+  background: var(--crimson);
+  animation: caret-blink 0.9s steps(1) infinite;
+}
+@keyframes caret-blink { 50% { opacity: 0; } }
+.banner { align-items: flex-start; }
+.banner__glyph { margin-top: 2px; }
+
+/* ---- chrome v2 ---- */
+.chrome {
+  background: linear-gradient(180deg, rgba(7, 6, 11, 0.92), rgba(7, 6, 11, 0.55)),
+              linear-gradient(90deg, rgba(255, 45, 85, 0.04), transparent 30%);
+}
+.brand__name {
+  background: linear-gradient(90deg, #fff, #ffb8c6);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+
+@media (max-width: 640px) {
+  .hero__doors { gap: 12px; }
+  .door { width: min(100%, 80vw); }
+}

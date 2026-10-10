@@ -105,3 +105,60 @@
     100% { opacity: 1; }
   }
 }
+
+/* ============================================================
+   v3 — scroll choreography
+   Nothing appears. Everything arrives.
+   ============================================================ */
+
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(28px) scale(0.985);
+  filter: blur(5px);
+  transition:
+    opacity 820ms var(--ease),
+    transform 820ms var(--ease),
+    filter 820ms var(--ease);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: transform, opacity;
+}
+[data-reveal].is-in {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+/* map stars keep their float while revealing */
+.map-field [data-reveal].is-in.is-star {
+  animation: star-in 560ms var(--ease) both, star-float 6s ease-in-out infinite alternate;
+  transition: none;
+  filter: none;
+}
+.orbit-stage [data-reveal].is-in.is-satellite {
+  animation: sat-in 620ms var(--ease-snap) both, sat-bob 5.2s ease-in-out infinite alternate;
+  transition: none;
+  filter: none;
+}
+.orbit-stage [data-reveal].is-in.is-hub {
+  animation: recompose 620ms var(--ease) both;
+  transition: none; filter: none;
+}
+.deck-slot [data-reveal] {
+  opacity: 1; transform: none; filter: none;
+  transition: none;
+}
+
+/* hero already has its own cascade — keep it authoritative */
+.hero .reveal { opacity: 0; }
+
+/* deck cards and map/orbit shapes reset reveals per shape — cards get
+   data-reveal at creation; shape CSS keeps their signature motion */
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
+}

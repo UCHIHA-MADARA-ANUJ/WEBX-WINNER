@@ -10,7 +10,9 @@ import { neutralGenome, applyEvent, decay, mutate, traitWord } from "./engine/ge
 import { createScheduler, PARADIGMS } from "./engine/scheduler.js";
 import { loadState, saveState, clearState } from "./engine/memory.js";
 import { createCard, updateCard, refreshAllCards } from "./ui/cards.js";
-import { flipMorph } from "./ui/morph.js";
+import { flipMorph, morphShockwave } from "./ui/morph.js";
+import { observeReveals } from "./ui/reveals.js";
+import { startEmberField } from "./ui/emberfield.js";
 import { buildChrome } from "./ui/shell.js";
 import { buildBrain } from "./ui/brain.js";
 import { mountHero } from "./ui/hero.js";
@@ -177,11 +179,13 @@ export function boot() {
     frame.dataset.layout = view.layout;
     refreshAllCards(cards, state, state.promoted);
     chrome.setShape(PARADIGMS[id].glyph, PARADIGMS[id].name);
+    observeReveals(mainHost);
   }
 
   function restructure(decision, { silent = false } = {}) {
     chrome.pulse();
     recomputeOrder(); // a new shape gets a freshly-evolved hierarchy
+    morphShockwave();
     flipMorph(renderShape);
     const to = PARADIGMS[decision.to];
     const from = PARADIGMS[decision.from];
@@ -477,6 +481,10 @@ export function boot() {
   /* ---------------- the living clock ---------------- */
   const timers = new Set();
   let lastTick = performance.now();
+
+  // the living atmosphere breathes with the genome
+  startEmberField(document.getElementById("ember-canvas"), { genome });
+
   timers.add(
     setInterval(() => {
       const now = performance.now();
@@ -548,6 +556,7 @@ export function boot() {
       const shape = MODE_TO_SHAPE[mode];
       hero.dismiss().then(() => {
         scheduler.force(shape, "choice"); // no-op if already there — the banner still matters
+        morphShockwave();
         renderShape();
         showBanner(
           {

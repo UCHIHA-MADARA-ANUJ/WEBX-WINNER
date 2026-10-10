@@ -84,3 +84,16 @@ export function recompose(el) {
     i += 1;
   }
 }
+
+/**
+ * THE SHOCKWAVE — a full-screen energy ring when the world reorganises.
+ * Pure theatre. Worth every pixel.
+ */
+export function morphShockwave() {
+  if (prefersReduced()) return;
+  const wave = document.createElement("div");
+  wave.className = "shockwave";
+  wave.setAttribute("aria-hidden", "true");
+  document.body.appendChild(wave);
+  setTimeout(() => wave.remove(), 900);
+}

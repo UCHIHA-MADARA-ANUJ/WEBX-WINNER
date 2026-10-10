@@ -22,6 +22,15 @@ async function bootDom() {
   };
   window.Element.prototype.scrollIntoView = function scrollIntoView() {};
   window.HTMLImageElement.prototype.decode = () => Promise.resolve();
+  window.HTMLCanvasElement.prototype.getContext = () => null;
+  globalThis.IntersectionObserver = class IntersectionObserver {
+    constructor(cb) { this.cb = cb; }
+    observe(el) {
+      queueMicrotask(() => this.cb([{ isIntersecting: true, target: el }], this));
+    }
+    unobserve() {}
+    disconnect() {}
+  };
 
   for (const key of [
     "window", "document", "localStorage", "requestAnimationFrame",
@@ -65,7 +74,10 @@ test("door: 'read carefully' morphs the site into the Magazine", async (t) => {
   assert.ok(document.querySelector(".mag-doc"), "magazine mounted");
   assert.equal(document.querySelectorAll("[data-flip^='unit:']").length, 12, "twelve persistent cards");
   const banner = document.querySelector(".banner");
-  assert.ok(banner && /magazine/i.test(banner.textContent), "explains the rebuild");
+  assert.ok(banner, "banner appeared");
+  assert.match(banner.textContent, /YOU ASKED FOR IT/i, "explains who asked for it");
+  await settle(1400); // the headline types itself in — wait for the drama
+  assert.match(document.querySelector(".banner").textContent, /magazine/i, "explains the rebuild");
 });
 
 test("door: 'explore wildly' morphs the site into the Constellation", async (t) => {
