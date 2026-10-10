@@ -1,0 +1,12 @@
+{
+  "name": "webx-winner",
+  "version": "1.0.0",
+  "description": "The Evolution Engine: a website whose structure rebuilds itself around how each visitor moves.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test tests/engine.test.mjs"
+  },
+  "engines": { "node": ">=18" }
+}
