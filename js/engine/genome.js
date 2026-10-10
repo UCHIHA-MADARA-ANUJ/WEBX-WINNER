@@ -144,6 +144,18 @@ export function applyEvent(genome, ev, ctx = {}) {
       bump("keyboard", 0.3);
       break;
     }
+    case "prime": {
+      // the landing buttons speak loudly — a declared intent
+      const mode = ev.mode;
+      if (mode === "reader") {
+        bump("depth", 1.6, 1); bump("pace", -1.6, 1); bump("linearity", 1.2, 1); bump("agency", -0.9, 1);
+      } else if (mode === "explorer") {
+        bump("agency", 1.6, 1); bump("linearity", -1.5, 1); bump("pace", 0.35, 1); bump("depth", -0.5, 1);
+      } else if (mode === "speedrunner") {
+        bump("pace", 1.8, 1); bump("depth", -1.5, 1); bump("agency", 0.5, 1); bump("linearity", -0.4, 1);
+      }
+      break;
+    }
     default:
       break;
   }

@@ -1,84 +1,55 @@
 /**
- * LATTICE — chrome shell
- * Persistent identity + the organism's live vital signs.
- * The one thing the visitor can always trust while the body
- * of the interface reorganises itself.
+ * Chrome — the one thing that never morphs.
+ * Name, current shape, generation, brain button. Nothing else.
  */
 
 export function buildChrome(host, ctx) {
   host.innerHTML = `
     <div class="brand">
-      <div class="brand__mark" id="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 64 64" fill="none">
-          <path d="M18 46 32 14l14 32M23 36h18" stroke="#7df9c9" stroke-width="5"
-                stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-      <div>
-        <div class="brand__name">Lattice</div>
-        <div class="brand__tag">an interface that grows around you</div>
+      <div class="brand__mark" id="brand-mark" aria-hidden="true">AP</div>
+      <div class="brand__text">
+        <div class="brand__name">ANUJ PHULERA</div>
+        <div class="brand__tag">the impossible interface</div>
       </div>
     </div>
 
     <div class="chrome__spacer"></div>
 
-    <div class="genome-strip" id="genome-strip" title="live behavioural genome"
-         role="img" aria-label="behavioural genome bar">
+    <div class="shape-badge" id="shape-badge">
+      <span class="shape-badge__glyph" id="shape-glyph">📖</span>
+      <span class="shape-badge__name" id="shape-name">MAGAZINE</span>
     </div>
 
-    <div class="badge badge--live" id="paradigm-badge">
-      <span class="badge__dot"></span>
-      <span>structure</span>
-      <strong id="paradigm-name">editorial</strong>
+    <div class="gen-badge" id="gen-badge" title="how many visits this genome has lived">
+      GEN <b id="gen-num">01</b>
     </div>
 
-    <div class="badge" id="gen-badge" title="cross-visit generation">
-      <span>gen</span><strong id="gen-num">01</strong>
-    </div>
-
-    <button class="chrome__btn" id="jump-btn" aria-label="Open quick jump">
-      jump <kbd>⌘K</kbd>
-    </button>
-    <button class="chrome__btn" id="inspect-btn" aria-label="Open engine inspector">
-      engine
+    <button class="chrome__btn chrome__btn--brain" id="brain-btn">
+      <span class="chrome__btn-dot"></span> see its brain
     </button>
   `;
 
-  const strip = host.querySelector("#genome-strip");
-  const bars = [];
-  for (let i = 0; i < 5; i++) {
-    const b = document.createElement("div");
-    b.className = "genome-strip__bar";
-    strip.appendChild(b);
-    bars.push(b);
-  }
-
-  host.querySelector("#jump-btn").addEventListener("click", () => ctx.openJump());
-  host.querySelector("#inspect-btn").addEventListener("click", () => ctx.toggleInspector());
+  host.querySelector("#brain-btn").addEventListener("click", () => ctx.toggleBrain());
 
   return {
-    setParadigm(name) {
-      host.querySelector("#paradigm-name").textContent = name.toLowerCase();
+    setShape(glyph, name) {
+      const g = host.querySelector("#shape-glyph");
+      const n = host.querySelector("#shape-name");
+      g.textContent = glyph;
+      n.textContent = name.toUpperCase();
+      const badge = host.querySelector("#shape-badge");
+      badge.classList.remove("is-shift");
+      void badge.offsetWidth;
+      badge.classList.add("is-shift");
     },
     setGeneration(gen) {
       host.querySelector("#gen-num").textContent = String(gen).padStart(2, "0");
     },
-    pulseRestructure() {
-      const badge = host.querySelector("#paradigm-badge");
+    pulse() {
       const mark = host.querySelector("#brand-mark");
-      badge.classList.add("badge--restructure");
       mark.classList.remove("brand__mark--pulse");
       void mark.offsetWidth;
       mark.classList.add("brand__mark--pulse");
-      setTimeout(() => badge.classList.remove("badge--restructure"), 1800);
-    },
-    setGenome(genome) {
-      const order = ["linearity", "pace", "depth", "agency", "keyboard"];
-      order.forEach((t, i) => {
-        const v = genome[t];
-        bars[i].style.height = `${4 + v * 22}px`;
-        bars[i].title = `${t}: ${v.toFixed(2)}`;
-      });
     },
   };
 }

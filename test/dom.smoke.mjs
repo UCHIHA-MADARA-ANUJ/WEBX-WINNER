@@ -1,7 +1,7 @@
 /**
- * LATTICE — DOM smoke test (jsdom)
- * Boots the real controller against a real DOM and walks through
- * interaction → restructure paths for several paradigms.
+ * DOM smoke tests (jsdom)
+ * Boots the real controller against a real DOM: hero → choice →
+ * morph → interactions, across the living shapes.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -16,15 +16,13 @@ async function bootDom() {
     pretendToBeVisual: true,
   });
   const { window } = dom;
-
-  // browser APIs jsdom does not implement
   window.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
   window.Element.prototype.animate = function animate() {
     return { finished: Promise.resolve(), cancel() {}, play() {} };
   };
   window.Element.prototype.scrollIntoView = function scrollIntoView() {};
+  window.HTMLImageElement.prototype.decode = () => Promise.resolve();
 
-  // expose browser globals to the ES modules
   for (const key of [
     "window", "document", "localStorage", "requestAnimationFrame",
     "getComputedStyle", "Node", "Element", "HTMLElement", "Event",
@@ -47,80 +45,87 @@ async function bootDom() {
   };
 }
 
-test("boot: chrome, cards and a paradigm render", async (t) => {
+const settle = (ms = 60) => new Promise((r) => setTimeout(r, ms));
+
+test("landing: cinematic hero with three doors and a skip", async (t) => {
   const { window, document, teardown } = await bootDom();
   t.after(teardown);
-  assert.ok(document.querySelector(".brand__name"), "chrome built");
-  assert.equal(document.querySelectorAll("[data-flip^='unit:']").length, 10, "ten persistent cards");
-  assert.equal(document.body.dataset.paradigm, "linear", "starts in Editorial");
-  assert.ok(document.querySelector(".linear-rail"), "chapter rail mounted");
-  assert.equal(document.querySelectorAll(".linear-chapter").length, 10);
+  assert.ok(document.querySelector(".hero"), "hero mounted");
+  assert.equal(document.querySelectorAll(".door").length, 3, "three doors");
+  assert.match(document.querySelector(".hero__name").textContent, /ANUJ/);
+  assert.ok(document.querySelector(".hero__skip"), "skip escape hatch");
 });
 
-test("interaction: read expands a card and survives re-render", async (t) => {
+test("door: 'read carefully' morphs the site into the Magazine", async (t) => {
   const { window, document, teardown } = await bootDom();
   t.after(teardown);
-  const card = document.querySelector("[data-id='feedback']");
-  card.querySelector("[data-act='open']").click();
-  const after = document.querySelector("[data-id='feedback']");
-  assert.ok(after.classList.contains("is-expanded"), "expanded after click");
-  assert.equal(after.querySelector(".card__body").hidden, false, "body revealed");
+  document.querySelector('[data-mode="reader"]').click();
+  await settle(800);
+  assert.equal(document.body.dataset.shape, "magazine");
+  assert.ok(document.querySelector(".mag-doc"), "magazine mounted");
+  assert.equal(document.querySelectorAll("[data-flip^='unit:']").length, 12, "twelve persistent cards");
+  const banner = document.querySelector(".banner");
+  assert.ok(banner && /magazine/i.test(banner.textContent), "explains the rebuild");
 });
 
-test("force: manual override restructures to Orbital with hub", async (t) => {
+test("door: 'explore wildly' morphs the site into the Constellation", async (t) => {
   const { window, document, teardown } = await bootDom();
   t.after(teardown);
-  const buttons = [...document.querySelectorAll(".force-chip")];
-  const orbital = buttons.find((b) => b.textContent.includes("Orbital"));
-  orbital.click();
-  await new Promise((r) => setTimeout(r, 30));
-  assert.equal(document.body.dataset.paradigm, "orbital", "paradigm switched");
-  assert.equal(document.querySelectorAll(".card.is-hub").length, 1, "one hub");
-  assert.ok(document.querySelectorAll(".card.is-satellite").length >= 5, "satellites orbit");
-  const toast = document.querySelector(".toast");
-  assert.ok(toast && /Orbital/.test(toast.textContent), "explains the change");
+  document.querySelector('[data-mode="explorer"]').click();
+  await settle(800);
+  assert.equal(document.body.dataset.shape, "map");
+  assert.ok(document.querySelector(".map-field"), "map mounted");
+  assert.ok(document.querySelectorAll(".map-field .card.is-star").length >= 10, "stars placed");
 });
 
-test("force: Terminal renders and runs commands", async (t) => {
+test("door: 'speedrun' morphs the site into the Swipe Deck; keep advances", async (t) => {
   const { window, document, teardown } = await bootDom();
   t.after(teardown);
-  const buttons = [...document.querySelectorAll(".force-chip")];
-  buttons.find((b) => b.textContent.includes("Terminal")).click();
-  await new Promise((r) => setTimeout(r, 30));
-  assert.equal(document.body.dataset.paradigm, "command");
-  const input = document.querySelector("#term-input");
-  assert.ok(input, "command input exists");
-  input.value = "open swarm";
-  input.dispatchEvent(new window.Event("input", { bubbles: true }));
-  input.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
-  await new Promise((r) => setTimeout(r, 30));
-  assert.equal(document.querySelector("[data-id='swarm']").classList.contains("is-expanded"), true);
+  document.querySelector('[data-mode="speedrunner"]').click();
+  await settle(800);
+  assert.equal(document.body.dataset.shape, "deck");
+  document.querySelector("[data-deck='keep']").click();
+  await settle(300);
+  const kept = document.querySelector(".deck-stat strong");
+  assert.equal(kept.textContent, "1", "one kept");
 });
 
-test("jump palette opens and filters", async (t) => {
+test("brain: 'see its brain' opens and explains in human words", async (t) => {
+  const { window, document, teardown } = await bootDom();
+  t.after(teardown);
+  document.querySelector("#brain-btn").click();
+  await settle(50);
+  const brain = document.querySelector(".brain");
+  assert.ok(brain.classList.contains("is-open"), "brain panel open");
+  assert.match(brain.textContent, /what it thinks of you/i);
+  assert.match(brain.textContent, /evolution, never chaos/i);
+  assert.equal(document.querySelectorAll(".brain-trait").length, 5, "five traits");
+  assert.equal(document.querySelectorAll(".brain-fit").length, 4, "four competing shapes");
+});
+
+test("jump: ⌘K palette opens and filters projects", async (t) => {
   const { window, document, teardown } = await bootDom();
   t.after(teardown);
   window.dispatchEvent(new window.KeyboardEvent("keydown", { key: "k", ctrlKey: true, bubbles: true }));
   const jump = document.getElementById("jump");
   assert.equal(jump.hidden, false, "jump overlay open");
   const input = document.getElementById("jump-input");
-  input.value = "swarm";
+  input.value = "resonate";
   input.dispatchEvent(new window.Event("input", { bubbles: true }));
   const results = document.querySelectorAll("#jump-results button");
   assert.ok(results.length >= 1);
-  assert.match(results[0].textContent, /Swarm/);
+  assert.match(results[0].textContent, /RESONATE/);
 });
 
-test("deck: keep/skip advances the queue", async (t) => {
+test("memory: actions persist and shapes stay reachable", async (t) => {
   const { window, document, teardown } = await bootDom();
   t.after(teardown);
-  [...document.querySelectorAll(".force-chip")].find((b) => b.textContent.includes("Triage")).click();
-  await new Promise((r) => setTimeout(r, 30));
-  assert.equal(document.body.dataset.paradigm, "deck");
-  const keep = document.querySelector("[data-deck='keep']");
-  keep.click();
-  await new Promise((r) => setTimeout(r, 30));
-  const stats = document.querySelectorAll(".deck-stat strong");
-  assert.equal(stats[0].textContent, "1", "one kept");
-  assert.equal(stats[2].textContent, "9", "nine remaining");
+  document.querySelector('[data-mode="reader"]').click();
+  await settle(800);
+  const card = document.querySelector("[data-id='verde']");
+  card.querySelector('[data-act="open"]').click();
+  await settle(300);
+  assert.ok(document.querySelector("[data-id='verde']").classList.contains("is-expanded"), "card expands");
+  const raw = window.localStorage.getItem("lattice.genome.v1");
+  assert.ok(raw && JSON.parse(raw).generation === 1, "genome persisted");
 });

@@ -1,86 +1,72 @@
 /**
- * LATTICE — controller
- * The conductor between senses (telemetry), belief (genome),
- * selection (scheduler) and bodies (paradigms).
- *
+ * CONTROLLER — the conductor
  * Every user action is an evolutionary event:
- *   action → telemetry → trait deltas → fitness re-eval → (maybe) restructure
+ *   action → telemetry → trait deltas → fitness → (maybe) THE MORPH
  */
 
-import { UNIT_IDS, UNIT_MAP, hash01, searchUnits } from "./content.js";
+import { UNIT_IDS, UNIT_MAP, hash01, searchUnits, PROFILE } from "./content.js";
 import { createTelemetry } from "./engine/telemetry.js";
-import {
-  neutralGenome,
-  applyEvent,
-  decay,
-  mutate,
-  traitWord,
-} from "./engine/genome.js";
+import { neutralGenome, applyEvent, decay, mutate, traitWord } from "./engine/genome.js";
 import { createScheduler, PARADIGMS } from "./engine/scheduler.js";
 import { loadState, saveState, clearState } from "./engine/memory.js";
 import { createCard, updateCard, refreshAllCards } from "./ui/cards.js";
 import { flipMorph } from "./ui/morph.js";
 import { buildChrome } from "./ui/shell.js";
-import { buildInspector } from "./ui/inspector.js";
-import { createLinear } from "./ui/paradigms/linear.js";
-import { createSpatial } from "./ui/paradigms/spatial.js";
-import { createOrbital } from "./ui/paradigms/orbital.js";
-import { createCommand } from "./ui/paradigms/command.js";
-import { createDeck } from "./ui/paradigms/deck.js";
-import { createGrid } from "./ui/paradigms/grid.js";
+import { buildBrain } from "./ui/brain.js";
+import { mountHero } from "./ui/hero.js";
+import { showBanner } from "./ui/banner.js";
+import { createMagazine } from "./ui/shapes/magazine.js";
+import { createMap } from "./ui/shapes/map.js";
+import { createDeck } from "./ui/shapes/deck.js";
+import { createOrbit } from "./ui/shapes/orbit.js";
 
 const FACTORIES = {
-  linear: createLinear,
-  spatial: createSpatial,
-  orbital: createOrbital,
-  command: createCommand,
+  magazine: createMagazine,
+  map: createMap,
   deck: createDeck,
-  grid: createGrid,
+  orbit: createOrbit,
+};
+
+const MODE_TO_SHAPE = {
+  reader: "magazine",
+  explorer: "map",
+  speedrunner: "deck",
 };
 
 export function boot() {
   /* ---------------- memory: generation N ---------------- */
   const saved = loadState();
   const generation = (saved?.generation || 0) + 1;
-
   const genome = saved?.genome ? { ...neutralGenome(), ...saved.genome } : neutralGenome();
 
   const state = {
+    generation,
     expanded: new Set(saved?.expanded || []),
     pins: new Set(saved?.pins || []),
     seen: new Set(saved?.seen || []),
-    focusId: saved?.focusId || UNIT_IDS[0],
+    focusId: saved?.focusId || "verde",
     trail: saved?.trail || [],
     tagFilter: null,
-    gridGroup: "all",
-    deck: {
-      index: 0,
-      kept: new Set(),
-      skipped: new Set(),
-    },
+    deck: { index: 0, kept: new Set(), skipped: new Set() },
     affinity: new Map(saved?.affinity || UNIT_IDS.map((id) => [id, 0])),
     promoted: { ...(saved?.promoted || {}) },
-    paradigm: null,
-    paradigmName: "",
+    shape: null,
   };
 
   const telemetry = createTelemetry();
   const scheduler = createScheduler({ genome });
   if (saved?.scheduler) scheduler.restore(saved.scheduler);
-  scheduler.restore({ current: saved?.lastParadigm || "linear" });
+  scheduler.restore({ current: saved?.lastShape || "magazine" });
 
-  /* cross-visit procedural state: the surface mutates on return */
   let mutationNote = null;
   if (generation >= 2) {
-    const strength = Math.min(0.22, 0.1 + generation * 0.02);
-    mutate(genome, strength);
-    const rankedFit = scheduler.fitnesses();
-    const best = rankedFit[0];
+    mutate(genome, Math.min(0.22, 0.1 + generation * 0.02));
+    const best = scheduler.fitnesses()[0];
     if (best.id !== scheduler.current) {
       scheduler.force(best.id, "return-visit");
-      mutationNote = `gen ${String(generation).padStart(2, "0")} · genome mutated while you were away — restructured to ${PARADIGMS[best.id].name}`;
+      mutationNote = `It's been here before — the genome mutated while you were away. The site now opens as ${PARADIGMS[best.id].name.toUpperCase()}.`;
     } else {
-      mutationNote = `gen ${String(generation).padStart(2, "0")} · your genome was remembered and pushed further`;
+      mutationNote = `Generation ${String(generation).padStart(2, "0")} — it remembers you, and pushed further.`;
     }
   }
 
@@ -89,43 +75,23 @@ export function boot() {
   const navHost = document.getElementById("nav-host");
   const mainHost = document.getElementById("main-host");
   const frame = document.getElementById("frame");
-  const toastHost = document.getElementById("toast-host");
+  const bannerHost = document.getElementById("banner-host");
   const liveRegion = document.getElementById("live-region");
+  const heroHost = document.getElementById("hero-host");
   const jumpEl = document.getElementById("jump");
   const jumpInput = document.getElementById("jump-input");
   const jumpResults = document.getElementById("jump-results");
 
   const cards = new Map();
-  const ctxBase = {
-    state,
-    genome,
-    affinity: state.affinity,
-    promoted: state.promoted,
-    cards,
-    act,
-    get ranked() {
-      return rankedUnits();
-    },
-  };
   for (const id of UNIT_IDS) {
     cards.set(id, createCard(id, { act }));
-    cards.get(id).dataset.title = UNIT_MAP.get(id).title;
   }
 
-  const chrome = buildChrome(chromeHost, {
-    openJump,
-    toggleInspector,
-  });
+  const chrome = buildChrome(chromeHost, { toggleBrain });
   chrome.setGeneration(generation);
 
-  const inspector = buildInspector(document.body, {
-    toggleInspector,
-    forceParadigm(id) {
-      telemetry.recordAction("force-paradigm", { via: "inspector" });
-      applyEvent(genome, { type: "force-paradigm" });
-      const decision = scheduler.force(id, "manual");
-      if (decision) restructure(decision);
-    },
+  const brain = buildBrain(document.body, {
+    toggleBrain,
     reset() {
       clearState();
       location.reload();
@@ -137,91 +103,77 @@ export function boot() {
     return [...UNIT_IDS].sort((a, b) => score(b) - score(a));
   }
   function score(id) {
-    const aff = state.affinity.get(id) || 0;
     return (
-      aff * 2.1 +
+      (state.affinity.get(id) || 0) * 2.1 +
       (state.pins.has(id) ? 1.1 : 0) +
       (state.seen.has(id) ? -0.3 : 0.8) +
       hash01(id + ":" + generation) * 0.2
     );
   }
-
   function bumpAffinity(id, amount) {
     if (!id) return;
     state.affinity.set(id, (state.affinity.get(id) || 0) + amount);
   }
 
-  /* ---------------- restructuring ---------------- */
+  /* ---------------- shapes ---------------- */
   function resetCardStyles() {
     for (const el of cards.values()) {
       el.style.cssText = "";
-      el.classList.remove("is-hub", "is-satellite", "is-dimmed", "is-span2", "is-swipe-keep", "is-swipe-skip");
+      el.classList.remove("is-hub", "is-satellite", "is-dimmed", "is-span2", "is-star", "is-deck-card", "is-swipe-keep", "is-swipe-skip");
       el.removeAttribute("aria-hidden");
     }
     refreshAllCards(cards, state, state.promoted);
   }
 
-  function renderParadigm() {
+  function renderShape() {
     const id = scheduler.current;
     const factory = FACTORIES[id];
     if (!factory) return;
-
     resetCardStyles();
-    state.paradigm = id;
-    state.paradigmName = PARADIGMS[id].name;
-
-    const ranked = rankedUnits();
+    state.shape = id;
     const view = factory({
-      ...ctxBase,
-      ranked,
+      state,
+      genome,
+      affinity: state.affinity,
+      promoted: state.promoted,
+      cards,
+      act,
+      ranked: rankedUnits(),
       recentEvents: telemetry.events,
-      telemetryStats: telemetry.snapshot().stats,
     });
-
     navHost.replaceChildren(view.nav);
     mainHost.replaceChildren(view.main);
-    document.body.dataset.paradigm = id;
+    document.body.dataset.shape = id;
     frame.dataset.layout = view.layout;
     refreshAllCards(cards, state, state.promoted);
-    chrome.setParadigm(PARADIGMS[id].name);
+    chrome.setShape(PARADIGMS[id].glyph, PARADIGMS[id].name);
   }
 
-  function restructure(decision) {
-    frame.classList.add("is-restructuring");
-    chrome.pulseRestructure();
-    flipMorph(renderParadigm).then(() => {
-      frame.classList.remove("is-restructuring");
-    });
-    const from = PARADIGMS[decision.from]?.name || decision.from;
-    const to = PARADIGMS[decision.to].name;
-    announce(`Interface restructured: ${from} → ${to}. ${PARADIGMS[decision.to].blurb}`);
-    showToast(
-      decision.reason === "manual" ? "manual override" : "evolution epoch",
-      `Structure: ${from} → ${to}`,
-      decision.why
-    );
+  function restructure(decision, { silent = false } = {}) {
+    chrome.pulse();
+    flipMorph(renderShape);
+    const to = PARADIGMS[decision.to];
+    const from = PARADIGMS[decision.from];
+    announce(`The site rebuilt itself: ${from?.name || ""} → ${to.name}. ${to.blurb}.`);
+    if (!silent) {
+      showBanner(
+        {
+          glyph: to.glyph,
+          kicker: decision.reason === "manual" ? "YOU CHOSE THIS" : "THE SITE IS REBUILDING ITSELF",
+          headline: to.explain,
+          sub: `structure: ${from?.name || "…"} → ${to.name} · ${to.blurb}`,
+        },
+        bannerHost
+      );
+    }
+    if (document.getElementById("brain-btn")) chrome.setShape(to.glyph, to.name);
   }
 
   function announce(msg) {
     liveRegion.textContent = msg;
   }
 
-  function showToast(kicker, text, why, amber = false) {
-    const t = document.createElement("div");
-    t.className = "toast";
-    t.innerHTML = `
-      <div class="toast__kicker ${amber ? "toast__kicker--amber" : ""}">${kicker}</div>
-      <div class="toast__text">${text}</div>
-      ${why ? `<div class="toast__why">${why}</div>` : ""}
-    `;
-    toastHost.appendChild(t);
-    setTimeout(() => {
-      t.classList.add("is-out");
-      setTimeout(() => t.remove(), 400);
-    }, 5200);
-  }
-
-  /* ---------------- quick jump (invariant escape hatch) ---------------- */
+  /* ---------------- jump palette (always-on escape hatch) ---------------- */
   let jumpActiveIdx = 0;
   function openJump(v = true) {
     jumpEl.hidden = !v;
@@ -239,7 +191,7 @@ export function boot() {
       const li = document.createElement("li");
       const b = document.createElement("button");
       if (i === 0) b.classList.add("is-active");
-      b.innerHTML = `<span class="r-title">${u.title}</span><span class="r-meta">${u.tags[0]} · ${u.minutes} min</span>`;
+      b.innerHTML = `<span class="r-title">${u.title}</span><span class="r-meta">${u.kind} · ${u.stack}</span>`;
       b.addEventListener("click", () => {
         openJump(false);
         act("jump", { unitId: u.id, via: "jump" });
@@ -271,12 +223,12 @@ export function boot() {
   });
   jumpEl.querySelector("[data-jump-close]").addEventListener("click", () => openJump(false));
 
-  function toggleInspector(v) {
-    const open = v === undefined ? !inspector.isOpen() : v;
-    inspector.open(open);
+  function toggleBrain(v) {
+    const open = v === undefined ? !brain.isOpen() : v;
+    brain.open(open);
   }
 
-  /* ---------------- focus tracking ---------------- */
+  /* ---------------- focus ---------------- */
   function setFocus(id, { seen = true } = {}) {
     if (!id || !UNIT_MAP.has(id)) return;
     state.focusId = id;
@@ -308,36 +260,32 @@ export function boot() {
         break;
       }
       case "open": {
-        const from = state.focusId;
         telemetry.recordOpen(unitId, payload.via || "open");
         applyEvent(genome, { type: "open", via: payload.via || "open" });
-        if (from !== unitId) telemetry.recordTransition(from, unitId, payload.via || "open");
+        if (state.focusId !== unitId) telemetry.recordTransition(state.focusId, unitId, payload.via || "open");
         state.expanded.add(unitId);
         setFocus(unitId);
         bumpAffinity(unitId, 0.45);
-        requestAnimationFrame(() => {
-          cards.get(unitId)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-        });
+        requestAnimationFrame(() => cards.get(unitId)?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
         break;
       }
       case "jump": {
-        telemetry.recordJump(unitId, payload.via || "jump");
+        telemetry.recordJump(unitId, "jump");
         applyEvent(genome, { type: "jump" });
         telemetry.recordTransition(state.focusId, unitId, "jump");
         state.expanded.add(unitId);
         setFocus(unitId);
         bumpAffinity(unitId, 0.4);
+        requestAnimationFrame(() => cards.get(unitId)?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
         break;
       }
       case "rel": {
-        const from = payload.from || state.focusId;
         telemetry.recordOpen(unitId, "relation");
         applyEvent(genome, { type: "open", via: "relation" });
-        telemetry.recordTransition(from, unitId, "relation");
+        telemetry.recordTransition(payload.from || state.focusId, unitId, "relation");
         state.expanded.add(unitId);
         setFocus(unitId);
         bumpAffinity(unitId, 0.55);
-        bumpAffinity(from, 0.2);
         break;
       }
       case "orbit": {
@@ -350,7 +298,6 @@ export function boot() {
       }
       case "focus": {
         setFocus(unitId);
-        applyEvent(genome, { type: "open", via: "graze" });
         telemetry.recordAction("focus", { unitId });
         break;
       }
@@ -368,18 +315,14 @@ export function boot() {
       case "prev": {
         const order = rankedUnits();
         const idx = Math.max(0, order.indexOf(state.focusId));
-        const nextId = order[type === "next"
-          ? Math.min(order.length - 1, idx + 1)
-          : Math.max(0, idx - 1)];
+        const nextId = order[type === "next" ? Math.min(order.length - 1, idx + 1) : Math.max(0, idx - 1)];
         telemetry.recordOpen(nextId, type);
         applyEvent(genome, { type: "open", via: type });
         telemetry.recordTransition(state.focusId, nextId, type);
         state.expanded.add(nextId);
         setFocus(nextId);
         bumpAffinity(nextId, 0.3);
-        requestAnimationFrame(() => {
-          cards.get(nextId)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-        });
+        requestAnimationFrame(() => cards.get(nextId)?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
         break;
       }
       case "keep":
@@ -387,31 +330,25 @@ export function boot() {
       case "open-card": {
         const order = rankedUnits();
         const currentId = order[state.deck.index];
-        if (type === "keep") {
-          if (currentId) {
-            state.deck.kept.add(currentId);
-            state.pins.add(currentId);
-            telemetry.recordAction("triage", { unitId: currentId, verdict: "keep" });
-            applyEvent(genome, { type: "triage", verdict: "keep" });
-            bumpAffinity(currentId, 0.6);
-          }
+        if (type === "keep" && currentId) {
+          state.deck.kept.add(currentId);
+          state.pins.add(currentId);
+          telemetry.recordAction("triage", { unitId: currentId, verdict: "keep" });
+          applyEvent(genome, { type: "triage", verdict: "keep" });
+          bumpAffinity(currentId, 0.6);
           state.deck.index += 1;
-        } else if (type === "skip") {
-          if (currentId) {
-            state.deck.skipped.add(currentId);
-            telemetry.recordAction("triage", { unitId: currentId, verdict: "skip" });
-            applyEvent(genome, { type: "triage", verdict: "skip" });
-            bumpAffinity(currentId, -0.2);
-          }
+        } else if (type === "skip" && currentId) {
+          state.deck.skipped.add(currentId);
+          telemetry.recordAction("triage", { unitId: currentId, verdict: "skip" });
+          applyEvent(genome, { type: "triage", verdict: "skip" });
+          bumpAffinity(currentId, -0.2);
           state.deck.index += 1;
-        } else {
-          if (currentId) {
-            state.expanded.add(currentId);
-            setFocus(currentId);
-            telemetry.recordOpen(currentId, "triage");
-            applyEvent(genome, { type: "open", via: "triage" });
-            state.deck.index += 1;
-          }
+        } else if (currentId) {
+          state.expanded.add(currentId);
+          setFocus(currentId);
+          telemetry.recordOpen(currentId, "triage");
+          applyEvent(genome, { type: "open", via: "triage" });
+          state.deck.index += 1;
         }
         break;
       }
@@ -419,7 +356,6 @@ export function boot() {
         state.deck.index = 0;
         state.deck.skipped.clear();
         telemetry.recordAction("reshuffle", {});
-        applyEvent(genome, { type: "command" });
         break;
       }
       case "filter-tag": {
@@ -427,41 +363,18 @@ export function boot() {
         telemetry.recordAction("filter-tag", { tag: state.tagFilter });
         break;
       }
-      case "grid-group": {
-        state.gridGroup = payload.group;
-        telemetry.recordAction("grid-group", { group: payload.group });
-        break;
-      }
-      case "evolve": {
-        telemetry.recordAction("evolve", {});
-        applyEvent(genome, { type: "command" });
-        const decision = scheduler.maybeRestructure(true);
-        if (decision) {
-          restructure(decision);
-          save();
-          return; // paradigm render already happened
-        } else {
-          showToast("evolution epoch", "Incumbent structure survives — no challenger cleared the hysteresis margin.", "the golden rule: evolution, not chaos", true);
-        }
-        break;
-      }
       default:
         telemetry.recordAction(type, payload);
         reRender = false;
     }
 
-    // scheduling: every meaningful action is an evolutionary trial
     const decision = scheduler.onAction();
     if (decision) {
       restructure(decision);
       save();
       return;
     }
-
-    if (reRender) {
-      flipMorph(renderParadigm).then(() => {});
-    }
-    chrome.setGenome(genome);
+    if (reRender) flipMorph(renderShape);
     saveThrottled();
   }
 
@@ -478,7 +391,7 @@ export function boot() {
       trail: state.trail,
       affinity: [...state.affinity.entries()],
       promoted: state.promoted,
-      lastParadigm: scheduler.current,
+      lastShape: scheduler.current,
       scheduler: scheduler.serialize(),
     });
     lastSave = Date.now();
@@ -494,7 +407,7 @@ export function boot() {
     }
   });
 
-  /* ---------------- global keys ---------------- */
+  /* ---------------- keys ---------------- */
   addEventListener("keydown", (e) => {
     const typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName || "");
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -502,8 +415,8 @@ export function boot() {
       openJump(true);
       return;
     }
-    if (e.key === "Escape" && !jumpEl.hidden) {
-      openJump(false);
+    if (e.key === "Escape") {
+      if (!jumpEl.hidden) openJump(false);
       return;
     }
     if (typing) return;
@@ -512,8 +425,8 @@ export function boot() {
       openJump(true);
       return;
     }
-    if (e.key === "e" && !e.metaKey && !e.ctrlKey) {
-      toggleInspector();
+    if (e.key.toLowerCase() === "b" && !e.metaKey && !e.ctrlKey) {
+      toggleBrain();
       return;
     }
     if (scheduler.current === "deck") {
@@ -529,65 +442,98 @@ export function boot() {
   /* ---------------- the living clock ---------------- */
   const timers = new Set();
   let lastTick = performance.now();
-  timers.add(setInterval(() => {
-    const now = performance.now();
-    const dt = (now - lastTick) / 1000;
-    lastTick = now;
-
-    const snap = telemetry.snapshot();
-    const active = snap.lastGapMs < 20000;
-    if (active) {
-      decay(genome, dt * 1000);
-      for (const [id, v] of state.affinity) {
-        state.affinity.set(id, v * 0.997);
+  timers.add(
+    setInterval(() => {
+      const now = performance.now();
+      const dt = (now - lastTick) / 1000;
+      lastTick = now;
+      const snap = telemetry.snapshot();
+      if (snap.lastGapMs < 20000) {
+        decay(genome, dt * 1000);
+        for (const [id, v] of state.affinity) state.affinity.set(id, v * 0.997);
+        const decision = scheduler.onTick(dt);
+        if (decision) {
+          restructure(decision);
+          save();
+          return;
+        }
+        brain.render({
+          genome,
+          fitnesses: scheduler.fitnesses(),
+          current: scheduler.current,
+          events: telemetry.events,
+        });
+        saveThrottled();
       }
-      const decision = scheduler.onTick(dt);
-      if (decision) {
-        restructure(decision);
-        save();
-        return;
-      }
-      chrome.setGenome(genome);
-      inspector.render({
-        genome,
-        fitnesses: scheduler.fitnesses(),
-        current: scheduler.current,
-        events: telemetry.events,
-      });
-      saveThrottled();
-    }
-  }, 1000));
+    }, 1000)
+  );
 
-  /* ---------------- resize: spatial field re-measures ---------------- */
+  /* ---------------- resize ---------------- */
   let resizeTimer = 0;
   addEventListener("resize", () => {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => renderParadigm(), 260);
+    resizeTimer = setTimeout(() => renderShape(), 260);
   });
 
-  /* ---------------- boot ---------------- */
-  renderParadigm();
-  chrome.setGenome(genome);
-  inspector.render({
-    genome,
-    fitnesses: scheduler.fitnesses(),
-    current: scheduler.current,
-    events: telemetry.events,
-  });
-
-  timers.add(setTimeout(() => {
-    if (mutationNote) showToast("procedural state", mutationNote, `traits after mutation: ${traitWord("linearity", genome.linearity)} · ${traitWord("pace", genome.pace)} · ${traitWord("depth", genome.depth)}`, true);
-    else
-      showToast(
-        "the interface is listening",
-        "Your pace, trajectory, depth and agency are rewriting this structure in real time.",
-        "open the engine panel (key E) to watch it think",
-        true
+  /* ---------------- landing flow ---------------- */
+  function startExperience({ skipped = false } = {}) {
+    renderShape();
+    brain.render({
+      genome,
+      fitnesses: scheduler.fitnesses(),
+      current: scheduler.current,
+      events: telemetry.events,
+    });
+    if (mutationNote) {
+      showBanner(
+        { glyph: "✦", kicker: "PROCEDURAL STATE", headline: mutationNote, sub: "it learned you last time" },
+        bannerHost
       );
-    announce(`LATTICE ready. Structure: ${PARADIGMS[scheduler.current].name}. Press E to inspect the engine.`);
-  }, 1200));
+    } else if (!skipped) {
+      // banner already shown by choice handler
+    } else {
+      showBanner(
+        {
+          glyph: "◈",
+          kicker: "IT'S WATCHING NOW",
+          headline: "Move around — the way you browse decides what this becomes.",
+          sub: "slow reading → magazine · wild roaming → constellation · speed → swipe deck",
+        },
+        bannerHost
+      );
+    }
+    announce(`Portfolio ready. Shape: ${PARADIGMS[scheduler.current].name}. Press B to see its brain.`);
+  }
 
-  /** teardown — used by tests; the page itself lives until closed */
+  const hero = mountHero(heroHost, {
+    generation,
+    onChoose(mode) {
+      applyEvent(genome, { type: "prime", mode });
+      telemetry.recordAction("choose-mode", { mode });
+      const shape = MODE_TO_SHAPE[mode];
+      hero.dismiss().then(() => {
+        scheduler.force(shape, "choice"); // no-op if already there — the banner still matters
+        renderShape();
+        showBanner(
+          {
+            glyph: PARADIGMS[shape].glyph,
+            kicker: "YOU ASKED FOR IT",
+            headline: PARADIGMS[shape].explain.replace("You", "You said it yourself — you"),
+            sub: `the genome took your word for it · ${PARADIGMS[shape].blurb}`,
+          },
+          bannerHost
+        );
+        announce(`The site is living in ${PARADIGMS[shape].name} mode — for now.`);
+        save();
+      });
+    },
+    onSkip() {
+      hero.dismiss().then(() => startExperience({ skipped: true }));
+    },
+  });
+
+  timers.add(setTimeout(() => {}, 0)); // keep timer set uniform
+
   return {
     stop() {
       for (const t of timers) clearInterval(t);

@@ -3,55 +3,54 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>LATTICE — the impossible interface</title>
-  <meta name="description" content="A living web surface with no fixed interface. LATTICE observes how you move — pace, trajectory, depth, agency — and reconstructs its own navigation, hierarchy and affordances around you." />
-  <meta name="theme-color" content="#07090d" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2307090d'/%3E%3Cpath d='M18 46 32 14l14 32M23 36h18' stroke='%237df9c9' stroke-width='4' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E" />
+  <title>Anuj Phulera — the impossible interface</title>
+  <meta name="description" content="Anuj Phulera's portfolio has no fixed layout. It observes how you browse and physically rebuilds itself around you — magazine, constellation, swipe deck or orbit." />
+  <meta name="theme-color" content="#07060b" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2307060b'/%3E%3Cpath d='M20 48 32 12l12 36M24 38h16' stroke='%23ff2d55' stroke-width='5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/base.css" />
-  <link rel="stylesheet" href="css/paradigms.css" />
-  <link rel="stylesheet" href="css/transitions.css" />
+  <link rel="stylesheet" href="css/shapes.css" />
+  <link rel="stylesheet" href="css/motion.css" />
 </head>
-<body data-paradigm="linear">
-  <!-- ambient organism: gradient field driven by the behavioural genome -->
-  <div class="organism" aria-hidden="true">
-    <div class="organism__blob organism__blob--a"></div>
-    <div class="organism__blob organism__blob--b"></div>
-    <div class="organism__blob organism__blob--c"></div>
-    <div class="organism__grain"></div>
+<body data-shape="magazine">
+  <div class="ambience" aria-hidden="true">
+    <div class="ambience__mist"></div>
+    <div class="ambience__embers"></div>
+    <div class="ambience__grain"></div>
   </div>
 
   <a class="skip-link" href="#main-host">Skip to content</a>
 
+  <div id="hero-host"></div>
   <header class="chrome" id="chrome"></header>
 
   <div class="frame" id="frame">
-    <nav class="nav-host" id="nav-host" aria-label="Adaptive navigation"></nav>
+    <nav class="nav-host" id="nav-host" aria-label="Living navigation"></nav>
     <main class="main-host" id="main-host" tabindex="-1"></main>
   </div>
 
-  <!-- quick-jump overlay: the one invariant escape hatch, always reachable -->
+  <div class="banner-host" id="banner-host" aria-hidden="true"></div>
+
   <div class="jump" id="jump" hidden>
     <div class="jump__scrim" data-jump-close></div>
     <div class="jump__panel" role="dialog" aria-modal="true" aria-label="Jump to anything">
       <div class="jump__input-row">
         <span class="jump__prompt">go</span>
         <input class="jump__input" id="jump-input" type="text" autocomplete="off" spellcheck="false"
-               placeholder="jump to any idea…  (esc to close)" />
+               placeholder="jump to any project or idea…  (esc closes)" />
       </div>
       <ul class="jump__results" id="jump-results"></ul>
-      <div class="jump__hint">enter to open · esc to close · the engine watches what you jump to</div>
+      <div class="jump__hint">enter to open · esc to close · ⌘K anytime · the brain watches what you jump to</div>
     </div>
   </div>
 
-  <div class="toast-host" id="toast-host" aria-hidden="true"></div>
   <div class="sr-only" id="live-region" role="status" aria-live="polite"></div>
 
   <script type="module" src="js/main.js"></script>
   <noscript>
-    <div class="noscript">LATTICE is an evolving interface — it needs JavaScript to reconstruct itself around you.</div>
+    <div class="noscript">This portfolio is a living interface — it needs JavaScript to rebuild itself around you.</div>
   </noscript>
 </body>
 </html>

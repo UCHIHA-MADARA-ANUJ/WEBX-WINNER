@@ -1,194 +1,145 @@
-# LATTICE — the impossible interface
+# ANUJ PHULERA — the impossible interface
 
-**A living web surface with no fixed interface.** Navigation, information
-hierarchy, available actions and element placement are not designed once —
-they are *grown*, continuously, around the behaviour of whoever is visiting.
-Two people who move differently through LATTICE will end up navigating
-structurally different versions of the same website.
+**My portfolio has no fixed layout.** It watches how you browse — pace, trajectory,
+depth, agency — then *physically rebuilds itself* into a different kind of website
+around you. A careful reader gets a magazine. A wild explorer gets a constellation.
+A speedrunner gets a swipe deck. Two visitors end up in structurally different
+portfolios built from the same story.
 
-> The ideas never change. Everything else does.
+> Built for **WEBX · The Impossible Interface** challenge.
+> The story never changes. The shape it's told in always does.
 
 **Live →** https://cdn.jsdelivr.net/gh/UCHIHA-MADARA-ANUJ/WEBX-WINNER@arena/df15d562-webx-winner/index.html
-(instant CDN mirror of this branch — verified serving)
-
-**GitHub Pages →** https://uchiha-madara-anuj.github.io/WEBX-WINNER/
-*Settings → Pages → Deploy from a branch → `arena/df15d562-webx-winner` / root.*
-(A deploy-from-Actions template is in `docs/github-pages.yml.example`.)
+*(verified CDN mirror of this branch)*
+**GitHub Pages →** https://uchiha-madara-anuj.github.io/WEBX-WINNER/ — *Settings → Pages → Deploy from a branch → `arena/df15d562-webx-winner` / root.*
+**Source →** https://github.com/UCHIHA-MADARA-ANUJ/WEBX-WINNER (PR [#1](https://github.com/UCHIHA-MADARA-ANUJ/WEBX-WINNER/pull/1))
 
 ---
 
-## Why this is not "just a re-skin"
+## The visitor workflow
 
-Changing themes, colors, fonts, or randomly shuffling `<div>`s is explicitly
-out of scope — and LATTICE does none of those things. What evolves is the
-**core structural paradigm** of the interface itself: the navigation model,
-the hierarchy, the primary action set, and the topology of the page.
+1. **Cinematic landing** — name, creed, and three glowing doors:
+   📖 **READ CAREFULLY** · 🗺️ **EXPLORE WILDLY** · 💳 **SPEEDRUN** (or *"just start"*).
+   Each door declares intent — the genome listens, and the first big morph
+   happens before you finish clicking.
+2. **The living surface** — real portfolio content: Verde, RESONATE, SkillVerse,
+   Nirmaan, the MUN circuit, skills, story, contact. The brain watches *how* you move.
+3. **THE MORPH** — when it has you figured out, every card physically flies into a
+   new structure (FLIP + stagger + crimson glow), with a plain-English banner:
+   *"You read with patience → the site rebuilt itself as a magazine."*
+4. **Memory** — come back tomorrow: the genome has mutated overnight and the site
+   may open in a different shape entirely.
 
-The same ten ideas (cards, with persistent DOM identity) are re-parented,
-re-proportioned and re-ordered into **six genuinely different navigation
-organisms** — and the transitions between them are physical: FLIP-morphed,
-with the cards flying from their old coordinates to their new ones.
+## The four shapes (structure, not themes)
 
-| Paradigm | Structural model | Nav = | Hierarchy = | For whom |
+| Shape | Kind of website | Nav model | Hierarchy | Born for |
 |---|---|---|---|---|
-| **Editorial** `linear` | chaptered long-form document | progress rail + prev/next | the sequence itself | sequential, deliberate readers |
-| **Constellation** `spatial` | 2D field of nodes, semantic edges | position & proximity | radial placement by affinity | wanderers, explorers |
-| **Orbital** `orbital` | hub-and-spoke association | the orbit trail | relatedness radius | associative, non-linear thinkers |
-| **Terminal** `command` | keyboard-first command surface | command history | usage frequency of actions | fast, autonomous, keyboard users |
-| **Triage** `deck` | decision stack (keep / skip / open) | the queue | live triage order | rapid scanners |
-| **Dashboard** `grid` | modular widgets + digest | tabs & groups | pins and spans | task-oriented returners |
+| 📖 **Magazine** | editorial spread | chapter rail + progress | the re-rankable sequence | calm, deep readers |
+| 🗺️ **Constellation** | star-map of work | position & proximity | affinity-driven placement | wild explorers |
+| 💳 **Swipe Deck** | full-screen triage | the queue + keep/skip | live decision order | speedrunners |
+| 🌀 **Orbit** | hub & spoke | the orbit trail | relatedness radius | thread-followers |
 
-Within each paradigm the structure keeps moving: the chapter order is
-re-ranked by affinity, pins widen widgets into `span-2` hubs, promoted
-actions physically grow (unused ones shrink and demote), and the density of
-the layout scales with how slowly you read.
+This is **not** theme-swapping or shuffled `<div>`s (explicitly out of scope).
+The navigation model, information hierarchy, primary action set and page topology
+all change — and the same cards keep **persistent DOM identity**, so the morphs are
+one organism rearranging its body, not a page reload.
 
 ---
 
 ## The Evolution Engine
 
 ```
-   ┌──────────────┐   events   ┌──────────┐  trait deltas  ┌─────────┐
-   │  TELEMETRY   │ ─────────► │  GENOME  │ ─────────────► │ FITNESS │
-   │  (senses)    │            │ (belief) │                │ (select)│
-   └──────┬───────┘            └────┬─────┘                └────┬────┘
-          │ dwell · pace            │ 5 traits in [0,1]          │ vs 6 ideals
-          │ trajectory · depth      │ decay → 0.5               │ + novelty
-          │ agency · keyboard       │ mutate across visits       │ − revisit
-          ▼                         ▼                           ▼
-   raw event ring            localStorage                ┌──────────────┐
-   (180 events)              (generation N)               │  SCHEDULER   │
-                                                          │ epochs ·     │
-                                                          │ hysteresis · │
-                                                          │ restructuring│
-                                                          └──────┬───────┘
-                                                                 ▼
-                                                    FLIP morph → new body
-                                                    (cards keep identity)
+   ┌─────────────┐  events   ┌─────────┐  deltas  ┌──────────┐
+   │  TELEMETRY  │ ────────► │  GENOME │ ───────► │  FITNESS │
+   │  (senses)   │           │(belief) │          │ (select) │
+   └──────┬──────┘           └────┬────┘          └─────┬────┘
+          │ dwell · pace          │ 5 traits [0..1]      │ vs 4 ideals
+          │ trajectory · depth    │ decay → 0.5          │ + novelty
+          │ agency · keyboard     │ mutate across visits │ − revisit
+          ▼                       ▼                     ▼
+     event ring             localStorage         ┌─────────────┐
+     (human words)          (generation N)        │  SCHEDULER  │
+                                                  │ epochs ·    │
+                                                  │ hysteresis  │
+                                                  └──────┬──────┘
+                                                         ▼
+                                             THE MORPH (FLIP + banner)
 ```
 
-### 1 · What it tracks (all local, all inspectable, all erasable)
+### What it tracks (all local, all inspectable, all erasable — press **B**)
 
-| Signal | Sensor | Feeds trait |
-|---|---|---|
-| **Dwell** | ms spent inside each idea | `depth`, `pace` |
-| **Pace** | EMA of inter-action gaps + scroll velocity | `pace` |
-| **Trajectory** | transitions across the semantic graph vs. declared links | `linearity` |
-| **Depth** | expand/read vs. graze/skip | `depth` |
-| **Agency** | pins, jumps, commands, manual navigation | `agency` |
-| **Keyboard** | command surface & jump palette usage | `keyboard` |
-| **Affinity** | per-idea score from opens, dwell, pins | information hierarchy |
-| **Generation** | visit counter in `localStorage` | cross-visit mutation |
+| Signal | Feeds |
+|---|---|
+| dwell (ms per card) | `depth`, `pace` |
+| inter-action gaps + scroll velocity | `pace` |
+| transitions vs. declared threads | `linearity` |
+| expand/read vs. graze/skip | `depth` |
+| pins, jumps, deliberate choices | `agency` |
+| ⌘K palette / deck keys | `keyboard` |
+| per-project affinity | information hierarchy |
+| visit `generation` | cross-visit mutation |
 
-Nothing leaves the browser. Press **E** (or the *engine* button) to open the
-inspector: live trait bars, live paradigm fitness, the raw event stream, and
-an `erase memory` control.
+### How it decides
 
-### 2 · The genome — a five-trait belief vector
+- **Genome:** five traits in `[0,1]` — `linearity · pace · depth · agency · keyboard`.
+  Small **bounded** deltas per event (no single click dominates), **decay toward 0.5**
+  with a ~90s half-life — so recent behaviour rules.
+- **Fitness:** similarity between your genome and each shape's ideal profile, plus
+  **novelty pressure** (grows the longer you stay — the site is never permanently
+  static) minus a **revisit penalty** (no thrashing back to the shape you just left).
+- **Epochs:** structural review every ~10 actions or ~50 active seconds. A switch
+  happens only if the challenger beats the incumbent by **hysteresis (0.07)**.
+- **Procedural state:** `localStorage` keeps genome, affinity, pins, promoted
+  actions. On visit N ≥ 2 the genome **mutates** (bounded random walk) and the site
+  may boot into a different shape — *"the genome mutated while you were away."*
+- **Declared intent:** the three doors apply a `prime` event — a loud, honest prior.
 
-`linearity · pace · depth · agency · keyboard`, each in `[0, 1]`.
-Every event nudges traits by small **bounded** deltas (no single click can
-dominate — only sustained patterns). Traits **decay toward 0.5** with a ~90s
-half-life, so recent behaviour dominates: weather has to become climate.
+### The golden rule: usable, navigable, consistent
 
-### 3 · How it decides to adapt
-
-Each of the six paradigms declares an **ideal behavioural profile** (e.g.
-Terminal ideal ≈ `keyboard 0.95, agency 0.94, pace 0.82, linearity 0.26`).
-Fitness = similarity between your current genome and that ideal, plus:
-
-- **Novelty pressure** — grows the longer you stay in one paradigm (capped),
-  so the surface is never permanently static
-- **Revisit penalty** — the paradigm you just left must work harder to win
-  you back → no thrashing
-
-**Epochs** (structural review points) fire every **11 meaningful actions**
-or **55 s** of active use. A switch happens only when the challenger beats
-the incumbent by a **hysteresis margin (0.07)** — *evolution, not chaos.*
-Every restructuring is announced (ARIA live region) and explained in a toast:
-why you moved, and what about your behaviour caused it.
-
-### 4 · Cross-visit procedural state
-
-State persists in `localStorage` (`generation`, genome, affinity map, pins,
-promoted actions, scheduler log). On **visit N ≥ 2** the genome is
-**mutated** (bounded random walk, strength grows with generation) and the
-surface may boot into a different paradigm entirely. Your third visit is
-shaped by everything the first two taught the engine.
-
-### 5 · The golden rule: usable, navigable, consistent
-
-- **Reachability invariant** — every idea is always reachable: the quick-jump
-  palette (`⌘K` / `Ctrl+K` / `/`) works in *every* paradigm
-- **Stable identity** — cards keep their DOM identity across restructures
-  (FLIP morphs, not page reloads); pins and progress survive every shift
-- **Legible intelligence** — the inspector shows exactly what the engine
-  believes and why each decision was made
-- **Accessibility** — full keyboard support, focus rings, `aria-live`
-  restructuring announcements, honest `prefers-reduced-motion` fallback
-  (crossfade instead of flights — structure still visibly changes)
+- **Reachability invariant** — ⌘K / `Ctrl+K` / `/` quick-jump works in every shape
+- **Stable identity** — cards keep their DOM identity across every morph
+- **Legible intelligence** — every restructure is announced (`aria-live`) *and*
+  explained in plain English; **B** opens *"see its brain"* (live traits in human
+  words, the four shapes competing, the raw event stream, erase button)
+- **Accessibility** — keyboard support throughout, focus rings, and a honest
+  `prefers-reduced-motion` fallback (no flights — the structure still visibly changes)
 
 ---
 
-## Seeing two users diverge
+## Seeing two visitors diverge
 
-1. **User A — the reader:** open an idea, read it slowly, click *Next*.
-   Stay on each card > 12 s. → `linearity ↑ depth ↑ pace ↓` → the surface
-   settles into **Editorial** and re-orders chapters around what you finish.
-2. **User B — the jumper:** press `⌘K`, jump between distant ideas fast,
-   open the Terminal (`E` → force, or just behave this way), type commands.
-   → `agency ↑ keyboard ↑ linearity ↓ pace ↑` → **Terminal** or **Triage**,
-   with the action set re-ranked around commands and jumps.
-3. Then open the inspector on both and compare the genomes, the fitness
-   ranking, and the structure you are each standing in.
+1. **Visitor A:** click 📖 READ CAREFULLY, read cards slowly, use *Next story*.
+   → `depth ↑ pace ↓ linearity ↑` → stays in **Magazine**, chapters re-order
+   around what they finish.
+2. **Visitor B:** click 🗺️ EXPLORE WILDLY, ⌘K-jump between distant projects,
+   follow threads. → `agency ↑ linearity ↓` → morphs to **Constellation** → **Orbit**.
+3. Press **B** on both and compare the brains.
 
-Want to see everything immediately? The inspector's **force structure** chips
-override the engine (a manual override is itself recorded as agency).
-
----
-
-## Run it locally
+## Run locally
 
 ```bash
-# any static server works — there is no build step
-python3 -m http.server 4173        # → http://localhost:4173
-
-# tests: engine unit tests + jsdom UI smoke tests
-npm install
-npm test
+python3 -m http.server 4173     # → http://localhost:4173
+npm install && npm test         # 15 tests: engine units + jsdom UI smoke
 ```
 
-Built with zero runtime dependencies: hand-rolled ES modules, CSS custom
-properties, FLIP animations. `jsdom` is a dev-only test dependency.
+Zero runtime dependencies, no build step. `jsdom` is dev-only.
 
 ## Repository map
 
 ```
-index.html                 shell: chrome host, nav host, main host, jump palette
-css/
-  base.css                 design system + shared card anatomy + inspector
-  paradigms.css            the six structural bodies
-  transitions.css          FLIP / morph / reduced-motion
+assets/                      6 cinematic key visuals (generated)
+index.html                   shell: hero host, chrome, frame, banners, jump
+css/  base · shapes · motion design system · the four bodies · FLIP cinema
 js/
-  content.js               the ten ideas (the only constants)
-  engine/
-    telemetry.js           senses: dwell, pace, trajectory, depth, agency
-    genome.js              belief vector: 5 traits, bounded deltas, decay
-    scheduler.js           selection: fitness, novelty, hysteresis, epochs
-    memory.js              cross-visit procedural state (localStorage)
-  ui/
-    cards.js               persistent card identity + action promotion
-    morph.js               FLIP structural morphing
-    shell.js               chrome + live genome pulse
-    inspector.js           the glass box
-    paradigms/*.js         the six bodies: linear spatial orbital command deck grid
-  controller.js            the single action funnel: act → sense → evolve → morph
-test/
-  engine.test.mjs          genome & scheduler behaviour (node:test)
-  dom.smoke.mjs            boots the real UI in jsdom, walks real interactions
+  content.js                 the story (PROFILE + 12 units) — the constants
+  engine/  telemetry · genome · scheduler · memory   ← the Evolution Engine
+  ui/  cards · morph · shell · hero · banner · brain
+       shapes/ magazine · map · deck · orbit         ← the four bodies
+  controller.js              act → sense → evolve → morph
+test/  engine.test.mjs · dom.smoke.mjs
 ```
 
 ---
 
-*LATTICE — the interface you are using is one individual in a population of
-possible interfaces. Your behaviour is the selection pressure.*
+*The interface you are using is one individual in a population of possible
+interfaces. Your behaviour is the selection pressure. Wake up to reality.*

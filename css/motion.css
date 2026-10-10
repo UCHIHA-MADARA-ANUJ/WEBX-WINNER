@@ -1,0 +1,107 @@
+/* ============================================================
+   MOTION — cinematic morphing, honest fallbacks
+   ============================================================ */
+
+.card { will-change: transform; }
+
+.card.is-flipping {
+  transition: none;
+  z-index: 20;
+}
+
+/* crimson flash while a card travels between structures */
+.card.is-morph-flash {
+  animation: morph-flash 900ms ease-out;
+}
+@keyframes morph-flash {
+  0% { box-shadow: 0 0 0 0 rgba(255, 45, 85, 0.55), var(--shadow); }
+  100% { box-shadow: 0 0 60px -10px rgba(255, 45, 85, 0), var(--shadow); }
+}
+
+/* auxiliary panels re-compose in a cascade */
+.recompose { animation: recompose 560ms var(--ease) both; }
+.recompose-1 { animation-delay: 40ms; }
+.recompose-2 { animation-delay: 90ms; }
+.recompose-3 { animation-delay: 140ms; }
+.recompose-4 { animation-delay: 190ms; }
+@keyframes recompose {
+  from { opacity: 0; transform: translateY(14px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+
+/* hero reveal cascade */
+.hero .reveal {
+  opacity: 0;
+  animation: hero-reveal 820ms var(--ease) forwards;
+}
+.hero .r1 { animation-delay: 120ms; }
+.hero .r2 { animation-delay: 240ms; }
+.hero .r3 { animation-delay: 400ms; }
+.hero .r4 { animation-delay: 520ms; }
+.hero .r5 { animation-delay: 660ms; }
+.hero .r6 { animation-delay: 820ms; }
+.hero .r7 { animation-delay: 1020ms; }
+@keyframes hero-reveal {
+  from { opacity: 0; transform: translateY(26px) scale(0.97); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+
+/* magnetic doors */
+.door { will-change: transform; }
+
+/* deck swipe */
+.deck-slot .card.is-swipe-keep {
+  transform: translate(110px, -36px) rotate(6deg) scale(0.9) !important;
+  opacity: 0;
+}
+.deck-slot .card.is-swipe-skip {
+  transform: translate(-110px, -26px) rotate(-7deg) scale(0.9) !important;
+  opacity: 0;
+}
+
+/* map stars pop in */
+.map-field .card.is-star { animation: star-in 560ms var(--ease) both, star-float 6s ease-in-out infinite alternate; }
+@keyframes star-in {
+  from { opacity: 0; transform: scale(0.7); }
+  to { opacity: 1; }
+}
+
+/* orbit satellites swing in */
+.orbit-stage .card.is-satellite {
+  animation: sat-in 620ms var(--ease-snap) both, sat-bob 5.2s ease-in-out infinite alternate;
+}
+@keyframes sat-in {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+  to { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+/* the frame breathes when the world reorganises */
+.frame.is-restructuring .main-host,
+.frame.is-restructuring .nav-host {
+  animation: skeleton 760ms var(--ease) both;
+}
+@keyframes skeleton {
+  0% { opacity: 1; }
+  20% { opacity: 0.3; filter: saturate(0.7); }
+  100% { opacity: 1; filter: none; }
+}
+
+/* ------------------------------------------------------------
+   reduced motion: no flights — but the structure still changes.
+   ------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+  .card.is-flipping { transform: none !important; }
+  .hero .reveal { opacity: 1; animation: none; }
+  .frame.is-restructuring .main-host,
+  .frame.is-restructuring .nav-host { animation: fade-swap 320ms ease both; }
+  @keyframes fade-swap {
+    0% { opacity: 0.4; }
+    100% { opacity: 1; }
+  }
+}
