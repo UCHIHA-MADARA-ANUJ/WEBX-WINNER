@@ -8,6 +8,16 @@ export function mount(el, ctx) {
   const readout = h('div', { class: 'hero-readout', 'aria-hidden': 'true' });
   const hero = h('section', { class: 'hero' },
     canvas,
+    h('div', { class: 'hud', 'aria-hidden': 'true' },
+      h('div', { class: 'hud-row' },
+        h('span', {}, 'SYS.', h('span', { class: 'live' }, ' OPERATIONAL')),
+        h('span', { class: 'hide-sm' }, 'LAT 28.6139° N'),
+      ),
+      h('div', { class: 'hud-row' },
+        h('span', { class: 'hide-sm' }, 'LON 77.2090° E · DELHI'),
+        h('span', { class: 'shock' }, 'ENGINE: LEARNING'),
+      ),
+    ),
     h('div', { class: 'hero-copy' },
       h('div', { class: 'kicker' }, 'WEBX · the evolution engine'),
       h('h1', {}, 'Two visitors.', h('br'), h('em', {}, 'Two websites.')),
@@ -16,7 +26,12 @@ export function mount(el, ctx) {
     ),
     readout,
   );
-  const wrap = h('div', { class: 'chronicle' }, SECTIONS.map((s) => sectionBlock(s)));
+  const wrap = h('div', { class: 'chronicle' }, SECTIONS.map((s, i) => {
+    const block = sectionBlock(s);
+    block.dataset.num = String(i + 1).padStart(2, '0');
+    block.querySelectorAll(':scope > header, :scope > p, :scope > ol, :scope > .cards').forEach((n) => n.classList.add('reveal'));
+    return block;
+  }));
   el.append(hero, wrap);
   const field = mountHero(canvas, { getSpeed: () => ctx.signal().speed });
   const tick = setInterval(() => {
@@ -30,11 +45,16 @@ export function mount(el, ctx) {
     for (const en of entries) if (en.isIntersecting) ctx.goto(en.target.dataset.section, 'scroll');
   }, { rootMargin: '-40% 0px -55% 0px' });
   wrap.querySelectorAll('.sec').forEach((s) => io.observe(s));
+  // scroll-triggered reveal, separate from focus tracking
+  const reveal = new IntersectionObserver((entries) => {
+    for (const en of entries) if (en.isIntersecting) { en.target.classList.add('is-in'); reveal.unobserve(en.target); }
+  }, { rootMargin: '0px 0px -12% 0px' });
+  wrap.querySelectorAll('.sec').forEach((s) => reveal.observe(s));
 
   return {
     sync(id) {
       wrap.querySelector(`[data-section="${id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     },
-    destroy() { clearInterval(tick); field.destroy(); io.disconnect(); el.innerHTML = ''; },
+    destroy() { clearInterval(tick); field.destroy(); io.disconnect(); reveal.disconnect(); el.innerHTML = ''; },
   };
 }
