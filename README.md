@@ -9,7 +9,7 @@ portfolios built from the same story.
 > Built for **WEBX · The Impossible Interface** challenge.
 > The story never changes. The shape it's told in always does.
 
-**Live →** https://cdn.jsdelivr.net/gh/UCHIHA-MADARA-ANUJ/WEBX-WINNER@82e79b3/index.html
+**Live →** https://cdn.jsdelivr.net/gh/UCHIHA-MADARA-ANUJ/WEBX-WINNER@3a6c365/index.html
 *(verified CDN mirror of this branch)*
 **GitHub Pages →** https://uchiha-madara-anuj.github.io/WEBX-WINNER/ — *Settings → Pages → Deploy from a branch → `arena/df15d562-webx-winner` / root.*
 **Source →** https://github.com/UCHIHA-MADARA-ANUJ/WEBX-WINNER (PR [#1](https://github.com/UCHIHA-MADARA-ANUJ/WEBX-WINNER/pull/1))
