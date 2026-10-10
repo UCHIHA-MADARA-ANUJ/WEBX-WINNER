@@ -10,6 +10,7 @@ import * as atlas from './views/atlas.js';
 import * as terminal from './views/terminal.js';
 import * as indexView from './views/index-grid.js';
 import * as deck from './views/deck.js';
+import { runIntro } from './intro.js';
 
 const VIEWS = { chronicle, atlas, terminal, index: indexView, deck };
 const META = {
@@ -142,6 +143,12 @@ const ctx = {
   setMode,
   emit,
   describe,
+  signal: () => ({
+    speed: ema,
+    mode,
+    generation: profile.generation,
+    navs: profile.events.filter((e) => e.t === 'nav').length,
+  }),
 };
 
 function describe() {
@@ -385,8 +392,12 @@ document.body.dataset.mode = mode;
 view = VIEWS[mode].mount(stage, ctx);
 updateDock();
 persist();
-if (returning) {
-  toast(`Welcome back · generation ${profile.generation}`,
-    `The interface remembers you and opened as ${META[mode][0]}. Keep moving; it will keep adapting.`, [], 7000);
-}
+runIntro(document.getElementById('intro'), {
+  onDone: () => {
+    if (returning) {
+      toast(`Welcome back · generation ${profile.generation}`,
+        `The interface remembers you and opened as ${META[mode][0]}. Keep moving; it will keep adapting.`, [], 7000);
+    }
+  },
+});
 window.__webx = { profile, metrics, evaluate, get mode() { return mode; } };
