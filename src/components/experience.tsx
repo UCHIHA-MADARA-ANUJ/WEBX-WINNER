@@ -504,21 +504,20 @@ export function Experience() {
               </div>
             </div>
 
-            <AnimatePresence mode="wait">
-              <motion.main
-                key={shape}
-                initial={{ opacity: 0, y: 24, filter: "blur(8px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                exit={{ opacity: 0, y: -18, filter: "blur(8px)" }}
-                transition={{ duration: 0.65, ease }}
-                className="pb-16"
-              >
-                {shape === "magazine" && <Magazine ctx={ctx} />}
-                {shape === "constellation" && <Constellation ctx={ctx} />}
-                {shape === "deck" && <Deck ctx={ctx} />}
-                {shape === "orbit" && <Orbit ctx={ctx} />}
-              </motion.main>
-            </AnimatePresence>
+            {/* Shape swap: plain keyed mount/unmount so framer-motion shared
+                layoutIds fly the SAME cards between structures — the wow. */}
+            <motion.main
+              key={shape}
+              initial={{ opacity: 0, y: 24, filter: "blur(8px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              transition={{ duration: 0.65, ease }}
+              className="pb-16"
+            >
+              {shape === "magazine" && <Magazine ctx={ctx} />}
+              {shape === "constellation" && <Constellation ctx={ctx} />}
+              {shape === "deck" && <Deck ctx={ctx} />}
+              {shape === "orbit" && <Orbit ctx={ctx} />}
+            </motion.main>
 
             {/* footer · summon me */}
             <footer className="border-t border-white/10 bg-black/60">
